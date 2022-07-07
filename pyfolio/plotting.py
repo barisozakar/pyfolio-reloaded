@@ -439,14 +439,24 @@ def plot_drawdown_periods(returns, top=10, ax=None, **kwargs):
 
     lim = ax.get_ylim()
     colors = sns.cubehelix_palette(len(df_drawdowns))[::-1]
-    for i, (peak, recovery) in df_drawdowns[
-        ["Peak date", "Recovery date"]
-    ].iterrows():
-        if pd.isnull(recovery):
-            recovery = returns.index[-1]
-        ax.fill_between(
-            (peak, recovery), lim[0], lim[1], alpha=0.4, color=colors[i]
-        )
+    # for i, (peak, recovery) in df_drawdowns[
+    #     ["Peak date", "Recovery date"]
+    # ].iterrows():
+    #     if pd.isnull(recovery):
+    #         recovery = returns.index[-1]
+    #     ax.fill_between(
+    #         (peak, recovery), lim[0], lim[1], alpha=0.4, color=colors[i]
+    #     )
+
+    for i, (peak, recovery) in df_drawdowns[['Peak date', 'Recovery date']].iterrows():
+        if not pd.isna(peak) and not pd.isna(recovery):
+            if pd.isnull(recovery):
+                recovery = returns.index[-1]
+            ax.fill_between((peak, recovery),
+                            lim[0],
+                            lim[1],
+                            alpha=.4,
+                            color=colors[i])
     ax.set_ylim(lim)
     ax.set_title("Top %i drawdown periods" % top)
     ax.set_ylabel("Cumulative returns")
@@ -835,7 +845,7 @@ def plot_rolling_returns(
         oos_cum_returns = pd.Series([])
 
     is_cum_returns.plot(
-        lw=3, color="forestgreen", alpha=0.6, label="Backtest", ax=ax, **kwargs
+        lw=3, color="forestgreen", alpha=0.6, label=returns.name, ax=ax, **kwargs
     )
 
     if len(oos_cum_returns) > 0:
@@ -917,15 +927,11 @@ def plot_rolling_beta(
     )
     rb_2.plot(color="grey", lw=3, alpha=0.4, ax=ax, **kwargs)
     ax.axhline(rb_1.mean(), color="steelblue", linestyle="--", lw=3)
-    ax.axhline(1.0, color="black", linestyle="--", lw=1)
+    ax.axhline(0.0, color="black", linestyle="-", lw=2)
 
     ax.set_xlabel("")
-    ax.legend(
-        ["6-mo", "12-mo", "6-mo Average"],
-        loc=legend_loc,
-        frameon=True,
-        framealpha=0.5,
-    )
+    ax.legend(["6-mo", "12-mo"], loc=legend_loc, frameon=True, framealpha=0.5)
+    ax.set_ylim((-1.0, 1.0))
     return ax
 
 
@@ -2113,3 +2119,4 @@ def plot_cones(
         return fig
     else:
         return axes
+
